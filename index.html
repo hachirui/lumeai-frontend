@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LumeAI — AI API per tutti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-elev: #131313;
+    --bg-card: #1a1a1a;
+    --ink: #f5f1e8;
+    --ink-dim: #8a857a;
+    --accent: #d4ff3f;
+    --accent-warm: #ff6b35;
+    --border: #2a2a2a;
+    --display: 'Fraunces', serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--ink); font-family: var(--mono); overflow-x: hidden; }
+  body {
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(212,255,63,0.06), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(255,107,53,0.05), transparent 40%);
+    min-height: 100vh;
+  }
+  .grain {
+    position: fixed; inset: 0; pointer-events: none; opacity: 0.04; z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' /%3E%3C/svg%3E");
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(20px); background: rgba(10,10,10,0.7);
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center;
+  }
+  .logo { font-family: var(--display); font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; }
+  .logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 2rem; align-items: center; font-size: 0.85rem; }
+  .nav-links a { color: var(--ink-dim); text-decoration: none; transition: color .2s; }
+  .nav-links a:hover { color: var(--ink); }
+  .btn {
+    background: var(--accent); color: #000; border: none; padding: 0.7rem 1.4rem;
+    font-family: var(--mono); font-size: 0.85rem; font-weight: 500; cursor: pointer;
+    border-radius: 2px; text-decoration: none; display: inline-block;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .btn:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--ink); }
+  .btn-outline { background: transparent; color: var(--ink); border: 1px solid var(--border); }
+  .btn-outline:hover { box-shadow: 4px 4px 0 var(--accent); }
+
+  /* HERO */
+  .hero { padding: 6rem 2rem 4rem; max-width: 1200px; margin: 0 auto; position: relative; }
+  .hero-tag { font-size: 0.75rem; color: var(--accent); letter-spacing: 0.2em; margin-bottom: 2rem; }
+  .hero h1 {
+    font-family: var(--display); font-weight: 600; font-size: clamp(2.5rem, 7vw, 5.5rem);
+    line-height: 0.95; letter-spacing: -0.03em; margin-bottom: 2rem; max-width: 900px;
+  }
+  .hero h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
+  .hero p { font-size: 1.1rem; color: var(--ink-dim); max-width: 540px; margin-bottom: 3rem; line-height: 1.6; }
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+  /* PROVIDERS SECTION */
+  .section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
+  .section-title { font-family: var(--display); font-size: 2.5rem; font-weight: 600; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+  .section-subtitle { color: var(--ink-dim); margin-bottom: 3rem; }
+
+  .providers-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;
+  }
+  .provider-card {
+    background: var(--bg-card); border: 1px solid var(--border); padding: 1.5rem;
+    position: relative; cursor: pointer; transition: all .2s;
+  }
+  .provider-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .provider-card.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(212,255,63,0.2); }
+  .provider-card .name { font-family: var(--display); font-size: 1.4rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .provider-card .model { font-size: 0.75rem; color: var(--ink-dim); margin-bottom: 1rem; }
+  .provider-card .price { font-family: var(--mono); font-size: 0.85rem; color: var(--accent); }
+  .provider-card .badge {
+    position: absolute; top: 1rem; right: 1rem; font-size: 0.65rem; padding: 0.2rem 0.5rem;
+    background: var(--accent); color: #000; text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .provider-card .badge.pro { background: var(--accent-warm); color: var(--ink); }
+
+  /* PRICING */
+  .pricing-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;
+  }
+  .price-card {
+    background: var(--bg-card); border: 1px solid var(--border); padding: 2rem;
+    position: relative;
+  }
+  .price-card.featured { border-color: var(--accent); }
+  .price-card .label { font-size: 0.75rem; color: var(--ink-dim); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 1rem; }
+  .price-card .price { font-family: var(--display); font-size: 3rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .price-card .price span { font-size: 1rem; color: var(--ink-dim); }
+  .price-card .credits { color: var(--accent); margin-bottom: 1.5rem; }
+  .price-card ul { list-style: none; margin-bottom: 2rem; }
+  .price-card li { padding: 0.5rem 0; color: var(--ink-dim); font-size: 0.9rem; }
+  .price-card li::before { content: "→ "; color: var(--accent); }
+
+  /* CHAT MODAL */
+  .modal {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+    padding: 2rem; justify-content: center; align-items: center;
+  }
+  .modal.open { display: flex; }
+  .modal-content {
+    background: var(--bg-elev); border: 1px solid var(--border); width: 100%; max-width: 800px;
+    height: 80vh; display: flex; flex-direction: column;
+  }
+  .modal-header {
+    padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .modal-header h3 { font-family: var(--display); font-weight: 600; }
+  .modal-header .close { background: none; border: none; color: var(--ink); font-size: 1.5rem; cursor: pointer; }
+  .chat-messages { flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+  .msg { padding: 0.85rem 1.1rem; max-width: 80%; line-height: 1.5; font-size: 0.9rem; }
+  .msg.user { align-self: flex-end; background: var(--accent); color: #000; }
+  .msg.ai { align-self: flex-start; background: var(--bg-card); border: 1px solid var(--border); }
+  .chat-input-bar { padding: 1rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; }
+  .chat-input-bar input {
+    flex: 1; background: var(--bg-card); border: 1px solid var(--border); color: var(--ink);
+    padding: 0.85rem 1rem; font-family: var(--mono); font-size: 0.9rem;
+  }
+  .chat-input-bar input:focus { outline: none; border-color: var(--accent); }
+  .provider-selector {
+    padding: 0.85rem; background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--ink); font-family: var(--mono); font-size: 0.85rem;
+  }
+
+  /* DASHBOARD CARD */
+  .dashboard {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 2rem;
+  }
+  .stat-card { background: var(--bg-card); border: 1px solid var(--border); padding: 1.5rem; }
+  .stat-card .label { font-size: 0.7rem; color: var(--ink-dim); letter-spacing: 0.2em; text-transform: uppercase; }
+  .stat-card .value { font-family: var(--display); font-size: 2.5rem; font-weight: 600; margin-top: 0.5rem; }
+
+  /* API SECTION */
+  .code-block {
+    background: #000; border: 1px solid var(--border); padding: 1.5rem;
+    font-family: var(--mono); font-size: 0.85rem; line-height: 1.7; overflow-x: auto;
+    color: var(--ink);
+  }
+  .code-block .comment { color: var(--ink-dim); }
+  .code-block .string { color: var(--accent); }
+  .code-block .keyword { color: var(--accent-warm); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border); padding: 2rem; text-align: center;
+    color: var(--ink-dim); font-size: 0.8rem; margin-top: 5rem;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .floater { animation: float 6s ease-in-out infinite; }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<nav>
+  <div class="logo">Lume<span>AI</span></div>
+  <div class="nav-links">
+    <a href="#providers">Modelli</a>
+    <a href="#pricing">Prezzi</a>
+    <a href="#api">API</a>
+    <a href="#" onclick="openChat()" class="btn btn-outline">Prova chat</a>
+    <a href="#pricing" class="btn">Inizia</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">━━ AI INFRASTRUCTURE</div>
+  <h1>Un'unica chiave.<br/>Tutti i modelli <em>open-source</em><br/>che servono.</h1>
+  <p>Llama, Mistral, Qwen, DeepSeek e altri 40+ modelli accessibili da un'unica API. Paga solo per quello che usi, niente abbonamenti fissi.</p>
+  <div class="hero-actions">
+    <a href="#pricing" class="btn">Compra crediti</a>
+    <a href="#" onclick="openChat()" class="btn btn-outline">Prova gratis →</a>
+  </div>
+</section>
+
+<section class="section" id="providers">
+  <div class="section-title">Modelli disponibili</div>
+  <div class="section-subtitle">Tutti open-source. Tutti commercialmente utilizzabili.</div>
+  <div class="providers-grid">
+    <div class="provider-card" data-model="llama-3.3-70b" data-price="0.5">
+      <div class="badge">VELOCE</div>
+      <div class="name">Llama 3.3 70B</div>
+      <div class="model">Meta · via Groq</div>
+      <div class="price">0,5 crediti / 1k token</div>
+    </div>
+    <div class="provider-card" data-model="mixtral-8x7b" data-price="0.3">
+      <div class="badge">ECONOMICO</div>
+      <div class="name">Mixtral 8x7B</div>
+      <div class="model">Mistral · MoE</div>
+      <div class="price">0,3 crediti / 1k token</div>
+    </div>
+    <div class="provider-card" data-model="qwen-2.5-72b" data-price="0.7">
+      <div class="badge pro">SMART</div>
+      <div class="name">Qwen 2.5 72B</div>
+      <div class="model">Alibaba</div>
+      <div class="price">0,7 crediti / 1k token</div>
+    </div>
+    <div class="provider-card" data-model="deepseek-v3" data-price="0.8">
+      <div class="badge pro">CODE</div>
+      <div class="name">DeepSeek V3</div>
+      <div class="model">DeepSeek AI</div>
+      <div class="price">0,8 crediti / 1k token</div>
+    </div>
+    <div class="provider-card" data-model="llama-3.1-8b" data-price="0.1">
+      <div class="badge">FREE TIER</div>
+      <div class="name">Llama 3.1 8B</div>
+      <div class="model">Meta · piccolo</div>
+      <div class="price">0,1 crediti / 1k token</div>
+    </div>
+    <div class="provider-card" data-model="gemma-2-9b" data-price="0.2">
+      <div class="badge">FREE TIER</div>
+      <div class="name">Gemma 2 9B</div>
+      <div class="model">Google open</div>
+      <div class="price">0,2 crediti / 1k token</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="pricing">
+  <div class="section-title">Prezzi semplici</div>
+  <div class="section-subtitle">Compri crediti, li spendi quando vuoi. Non scadono.</div>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="label">Starter</div>
+      <div class="price">€5<span>/una tantum</span></div>
+      <div class="credits">1.000 crediti</div>
+      <ul>
+        <li>Tutti i modelli</li>
+        <li>Chat web</li>
+        <li>API REST</li>
+        <li>10 req/min</li>
+      </ul>
+      <a href="#" class="btn">Acquista</a>
+    </div>
+    <div class="price-card featured">
+      <div class="label">Pro</div>
+      <div class="price">€20<span>/una tantum</span></div>
+      <div class="credits">5.000 crediti</div>
+      <ul>
+        <li>Tutti i modelli</li>
+        <li>Chat + API</li>
+        <li>60 req/min</li>
+        <li>Supporto email</li>
+      </ul>
+      <a href="#" class="btn">Acquista</a>
+    </div>
+    <div class="price-card">
+      <div class="label">Business</div>
+      <div class="price">€80<span>/una tantum</span></div>
+      <div class="credits">25.000 crediti</div>
+      <ul>
+        <li>Tutti i modelli</li>
+        <li>Chat + API</li>
+        <li>300 req/min</li>
+        <li>Supporto prioritario</li>
+      </ul>
+      <a href="#" class="btn">Acquista</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="dashboard-demo">
+  <div class="section-title">La tua dashboard</div>
+  <div class="section-subtitle">Tieni traccia di consumi, modelli usati e crediti rimanenti.</div>
+  <div class="dashboard">
+    <div class="stat-card">
+      <div class="label">Crediti</div>
+      <div class="value">4.823</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Richieste oggi</div>
+      <div class="value">127</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Token usati</div>
+      <div class="value">89k</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Modello top</div>
+      <div class="value" style="font-size:1.4rem; padding-top: 1rem;">Llama 3.3</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="api">
+  <div class="section-title">API REST per sviluppatori</div>
+  <div class="section-subtitle">Compatibile col formato OpenAI. Cambi solo l'URL.</div>
+  <div class="code-block">
+<span class="comment"># Python esempio</span><br/>
+<span class="keyword">import</span> requests<br/><br/>
+response = requests.post(<br/>
+&nbsp;&nbsp;<span class="string">"https://api.lumeai.io/v1/chat/completions"</span>,<br/>
+&nbsp;&nbsp;headers={<span class="string">"Authorization"</span>: <span class="string">"Bearer sk-lume-IL_TUO_TOKEN"</span>},<br/>
+&nbsp;&nbsp;json={<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"model"</span>: <span class="string">"llama-3.3-70b"</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"messages"</span>: [{<span class="string">"role"</span>: <span class="string">"user"</span>, <span class="string">"content"</span>: <span class="string">"Ciao!"</span>}]<br/>
+&nbsp;&nbsp;}<br/>
+)<br/>
+<span class="keyword">print</span>(response.json())
+  </div>
+</section>
+
+<!-- CHAT MODAL -->
+<div class="modal" id="chatModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>LumeAI Chat</h3>
+      <button class="close" onclick="closeChat()">×</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg ai">Ciao! Sono pronto a risponderti. Seleziona un modello qui sotto e inizia a chattare.</div>
+    </div>
+    <div class="chat-input-bar">
+      <select class="provider-selector" id="modelSelect">
+        <option value="llama-3.3-70b">Llama 3.3 70B</option>
+        <option value="mixtral-8x7b">Mixtral 8x7B</option>
+        <option value="qwen-2.5-72b">Qwen 2.5 72B</option>
+        <option value="deepseek-v3">DeepSeek V3</option>
+        <option value="llama-3.1-8b">Llama 3.1 8B (free)</option>
+      </select>
+      <input type="text" id="chatInput" placeholder="Scrivi un messaggio..." onkeypress="if(event.key==='Enter') sendMessage()" />
+      <button class="btn" onclick="sendMessage()">Invia</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  LumeAI · MVP demo · Modelli open-source via Groq & OpenRouter
+</footer>
+
+<script>
+  // Selezione provider card
+  document.querySelectorAll('.provider-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.provider-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      const model = card.dataset.model;
+      document.getElementById('modelSelect').value = model;
+    });
+  });
+
+  function openChat() {
+    document.getElementById('chatModal').classList.add('open');
+    document.getElementById('chatInput').focus();
+  }
+  function closeChat() {
+    document.getElementById('chatModal').classList.remove('open');
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const messages = document.getElementById('chatMessages');
+    const model = document.getElementById('modelSelect').value;
+    const text = input.value.trim();
+    if (!text) return;
+
+    // Mostra messaggio utente
+    const userMsg = document.createElement('div');
+    userMsg.className = 'msg user';
+    userMsg.textContent = text;
+    messages.appendChild(userMsg);
+    input.value = '';
+    messages.scrollTop = messages.scrollHeight;
+
+    // Placeholder AI
+    const aiMsg = document.createElement('div');
+    aiMsg.className = 'msg ai';
+    aiMsg.textContent = 'Sto pensando...';
+    messages.appendChild(aiMsg);
+    messages.scrollTop = messages.scrollHeight;
+
+    // Chiamata al TUO backend (non direttamente a Groq!)
+    try {
+      const res = await fetch('https://web-production-f0d2c.up.railway.app/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer sk-lume-demo-key'  // in produzione: token utente loggato
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [{ role: 'user', content: text }]
+        })
+      });
+      const data = await res.json();
+      aiMsg.textContent = data.choices?.[0]?.message?.content || 'Errore: ' + (data.error || 'risposta vuota');
+    } catch (e) {
+      aiMsg.textContent = '⚠️ Backend non raggiungibile. Avvia il server Python su porta 8000.';
+    }
+    messages.scrollTop = messages.scrollHeight;
+  }
+</script>
+</body>
+</html>
