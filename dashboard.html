@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard — LumeAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-elev: #131313;
+    --bg-card: #1a1a1a;
+    --ink: #f5f1e8;
+    --ink-dim: #8a857a;
+    --accent: #d4ff3f;
+    --accent-warm: #ff6b35;
+    --border: #2a2a2a;
+    --display: 'Fraunces', serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--ink); font-family: var(--mono); min-height: 100vh; }
+  body {
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(212,255,63,0.06), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(255,107,53,0.05), transparent 40%);
+  }
+
+  /* NAV */
+  nav {
+    backdrop-filter: blur(20px); background: rgba(10,10,10,0.7);
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center;
+  }
+  .logo { font-family: var(--display); font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; }
+  .logo a { color: var(--ink); text-decoration: none; }
+  .logo span { color: var(--accent); }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .user-avatar { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); }
+  .user-email { font-size: 0.8rem; color: var(--ink-dim); }
+  .btn {
+    background: var(--accent); color: #000; border: none; padding: 0.5rem 1rem;
+    font-family: var(--mono); font-size: 0.8rem; font-weight: 500; cursor: pointer;
+    border-radius: 2px; text-decoration: none;
+  }
+  .btn-outline { background: transparent; color: var(--ink); border: 1px solid var(--border); }
+
+  /* MAIN */
+  main { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem; }
+  .hero-row { margin-bottom: 3rem; }
+  h1 {
+    font-family: var(--display); font-size: 2.5rem; font-weight: 600;
+    letter-spacing: -0.02em; margin-bottom: 0.5rem;
+  }
+  .welcome { color: var(--ink-dim); }
+
+  /* STATS */
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem; margin-bottom: 3rem;
+  }
+  .stat-card {
+    background: var(--bg-card); border: 1px solid var(--border); padding: 1.5rem;
+  }
+  .stat-card .label {
+    font-size: 0.7rem; color: var(--ink-dim);
+    letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  .stat-card .value {
+    font-family: var(--display); font-size: 2.5rem; font-weight: 600;
+    margin-top: 0.5rem; letter-spacing: -0.02em;
+  }
+  .stat-card.accent .value { color: var(--accent); }
+
+  /* SECTIONS */
+  section { margin-bottom: 3rem; }
+  h2 {
+    font-family: var(--display); font-size: 1.5rem; font-weight: 600;
+    margin-bottom: 1rem; letter-spacing: -0.02em;
+  }
+  .section-desc { color: var(--ink-dim); font-size: 0.85rem; margin-bottom: 1.5rem; }
+
+  /* API KEY BOX */
+  .api-key-box {
+    background: #000; border: 1px solid var(--border); padding: 1.5rem;
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  }
+  .api-key-value {
+    font-family: var(--mono); font-size: 0.9rem; color: var(--accent);
+    flex: 1; word-break: break-all; min-width: 200px;
+  }
+  .api-key-actions { display: flex; gap: 0.5rem; }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: #000; border: 1px solid var(--border); padding: 1.5rem;
+    font-family: var(--mono); font-size: 0.8rem; line-height: 1.7;
+    overflow-x: auto; color: var(--ink); white-space: pre;
+  }
+  .code-block .comment { color: var(--ink-dim); }
+  .code-block .string { color: var(--accent); }
+  .code-block .keyword { color: var(--accent-warm); }
+
+  /* USAGE TABLE */
+  .usage-table {
+    width: 100%; background: var(--bg-card); border: 1px solid var(--border);
+    border-collapse: collapse;
+  }
+  .usage-table th, .usage-table td {
+    padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .usage-table th {
+    color: var(--ink-dim); font-weight: 500; font-size: 0.7rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .usage-table td.credits { color: var(--accent); }
+  .empty-state { padding: 2rem; text-align: center; color: var(--ink-dim); }
+
+  /* LOADER */
+  .loader { text-align: center; padding: 4rem; color: var(--ink-dim); }
+
+  @media (max-width: 640px) {
+    h1 { font-size: 1.8rem; }
+    .stat-card .value { font-size: 1.8rem; }
+    main { padding: 2rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo"><a href="/">Lume<span>AI</span></a></div>
+  <div class="nav-right">
+    <img id="userAvatar" class="user-avatar" src="" alt="Avatar" style="display:none;" />
+    <span id="userEmail" class="user-email"></span>
+    <button class="btn btn-outline" onclick="logout()">Esci</button>
+  </div>
+</nav>
+
+<main>
+  <div id="loader" class="loader">Caricamento...</div>
+
+  <div id="content" style="display:none;">
+
+    <div class="hero-row">
+      <h1>La tua dashboard</h1>
+      <p class="welcome" id="welcomeText">Bentornato!</p>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat-card accent">
+        <div class="label">Crediti disponibili</div>
+        <div class="value" id="credits">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Richieste totali</div>
+        <div class="value" id="totalRequests">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Token usati</div>
+        <div class="value" id="totalTokens">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Modello top</div>
+        <div class="value" id="topModel" style="font-size:1.2rem; padding-top:1rem;">—</div>
+      </div>
+    </div>
+
+    <!-- API KEY -->
+    <section>
+      <h2>La tua API key</h2>
+      <p class="section-desc">Usa questa chiave per autenticarti dalle tue applicazioni. Tienila segreta — chi la possiede può consumare i tuoi crediti.</p>
+      <div class="api-key-box">
+        <span class="api-key-value" id="apiKey">sk-lume-...</span>
+        <div class="api-key-actions">
+          <button class="btn" onclick="copyApiKey()">Copia</button>
+          <button class="btn btn-outline" onclick="regenerateKey()">Rigenera</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXAMPLE CODE -->
+    <section>
+      <h2>Esempio rapido</h2>
+      <p class="section-desc">Copia e incolla nel tuo terminale per fare la prima richiesta:</p>
+      <div class="code-block" id="curlExample"></div>
+    </section>
+
+    <!-- USAGE LOG -->
+    <section>
+      <h2>Ultime richieste</h2>
+      <p class="section-desc">Le ultime 50 richieste che hai fatto.</p>
+      <table class="usage-table">
+        <thead>
+          <tr>
+            <th>Quando</th>
+            <th>Modello</th>
+            <th>Input token</th>
+            <th>Output token</th>
+            <th>Crediti</th>
+          </tr>
+        </thead>
+        <tbody id="usageBody">
+          <tr><td colspan="5" class="empty-state">Nessuna richiesta ancora. Prova la chat o l'API!</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+  </div>
+</main>
+
+<script>
+  const BACKEND_URL = 'https://web-production-f0d2c.up.railway.app';
+
+  // === Gestione token ===
+  function getToken() {
+    // Prima controlla l'URL (appena loggato), poi localStorage
+    const url = new URL(window.location);
+    const urlToken = url.searchParams.get('token');
+    if (urlToken) {
+      localStorage.setItem('lumeai_token', urlToken);
+      // Pulisci l'URL
+      window.history.replaceState({}, document.title, '/dashboard.html');
+      return urlToken;
+    }
+    return localStorage.getItem('lumeai_token');
+  }
+
+  function logout() {
+    localStorage.removeItem('lumeai_token');
+    window.location.href = '/';
+  }
+
+  async function api(path, opts = {}) {
+    const token = getToken();
+    if (!token) {
+      window.location.href = '/login.html';
+      return;
+    }
+    const res = await fetch(`${BACKEND_URL}${path}`, {
+      ...opts,
+      headers: {
+        ...(opts.headers || {}),
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (res.status === 401) {
+      logout();
+      return;
+    }
+    return res.json();
+  }
+
+  // === Caricamento dati ===
+  async function loadDashboard() {
+    const token = getToken();
+    if (!token) {
+      window.location.href = '/login.html';
+      return;
+    }
+
+    try {
+      const me = await api('/v1/me');
+      const usage = await api('/v1/me/usage');
+
+      // Header utente
+      document.getElementById('userEmail').textContent = me.email;
+      if (me.picture) {
+        const av = document.getElementById('userAvatar');
+        av.src = me.picture;
+        av.style.display = 'block';
+      }
+      document.getElementById('welcomeText').textContent =
+        me.name ? `Ciao ${me.name.split(' ')[0]}!` : 'Bentornato!';
+
+      // Stats
+      document.getElementById('credits').textContent =
+        Math.round(me.credits).toLocaleString('it-IT');
+
+      const logs = usage.data || [];
+      document.getElementById('totalRequests').textContent = logs.length;
+
+      const totalTokens = logs.reduce((acc, r) =>
+        acc + (r.input_tokens || 0) + (r.output_tokens || 0), 0);
+      document.getElementById('totalTokens').textContent =
+        totalTokens >= 1000 ? `${(totalTokens/1000).toFixed(1)}k` : totalTokens;
+
+      // Modello più usato
+      const modelCounts = {};
+      logs.forEach(r => modelCounts[r.model] = (modelCounts[r.model] || 0) + 1);
+      const top = Object.entries(modelCounts).sort((a,b) => b[1]-a[1])[0];
+      document.getElementById('topModel').textContent = top ? top[0] : '—';
+
+      // API Key
+      document.getElementById('apiKey').textContent = me.api_key;
+
+      // Curl example
+      document.getElementById('curlExample').textContent =
+`curl -X POST ${BACKEND_URL}/v1/chat/completions \\
+  -H "Authorization: Bearer ${me.api_key}" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "llama-3.1-8b",
+    "messages": [{"role": "user", "content": "Ciao!"}]
+  }'`;
+
+      // Usage table
+      if (logs.length > 0) {
+        const tbody = document.getElementById('usageBody');
+        tbody.innerHTML = logs.map(r => `
+          <tr>
+            <td>${new Date(r.timestamp).toLocaleString('it-IT')}</td>
+            <td>${r.model}</td>
+            <td>${r.input_tokens || 0}</td>
+            <td>${r.output_tokens || 0}</td>
+            <td class="credits">${r.credits_used.toFixed(3)}</td>
+          </tr>
+        `).join('');
+      }
+
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById('loader').textContent =
+        'Errore nel caricamento. Riprova fra qualche secondo.';
+    }
+  }
+
+  // === Azioni ===
+  function copyApiKey() {
+    const key = document.getElementById('apiKey').textContent;
+    navigator.clipboard.writeText(key);
+    alert('API key copiata!');
+  }
+
+  async function regenerateKey() {
+    if (!confirm('Sicuro? La vecchia API key smetterà di funzionare immediatamente.')) return;
+    const res = await api('/v1/me/regenerate-key', { method: 'POST' });
+    if (res && res.api_key) {
+      document.getElementById('apiKey').textContent = res.api_key;
+      alert('Nuova API key generata!');
+      loadDashboard(); // ricarica per aggiornare il curl example
+    }
+  }
+
+  // === Avvio ===
+  loadDashboard();
+</script>
+</body>
+</html>
